@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 
 public class Producer implements Runnable {
-    private volatile boolean running;
+    private boolean running;
     private Market market;
     private Thread thread;
     private PrintStream stream;
@@ -22,8 +22,22 @@ public class Producer implements Runnable {
     @Override
     public void run() {
         int product = 1;
-        while(running) {
-            market.put(product++);
+
+        while (running) {
+            try {
+                synchronized (market) {
+                    if (!market.isFlag()) {
+                        market.put(product);
+                        stream.println("Producer put product: " + product++);
+                        market.setFlag(true);
+                        market.notifyAll();
+                    } else {
+                        market.wait();
+                    }
+                }
+            } catch (InterruptedException exception) {
+                stream.println(exception.toString());
+            }
         }
     }
 

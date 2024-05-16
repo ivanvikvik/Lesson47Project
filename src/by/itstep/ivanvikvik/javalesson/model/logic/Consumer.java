@@ -19,14 +19,25 @@ public class Consumer implements Runnable {
         running = true;
         thread = new Thread(this);
         thread.start();
-
-
     }
 
     @Override
     public void run() {
         while (running) {
-            market.get();
+            synchronized (market) {
+                if (market.isFlag()) {
+                    int product = market.get();
+                    stream.printf("Consumer %d use product %d.\n", id, product);
+                    market.setFlag(false);
+                    market.notifyAll();
+                } else {
+                    try {
+                        market.wait();
+                    } catch (InterruptedException exception) {
+                        stream.println(exception.toString());
+                    }
+                }
+            }
         }
     }
 
@@ -34,3 +45,4 @@ public class Consumer implements Runnable {
         running = false;
     }
 }
+

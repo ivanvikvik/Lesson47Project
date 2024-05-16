@@ -19,31 +19,11 @@ public class Market {
         this.flag = flag;
     }
 
-    public synchronized void get() {
-        try {
-            if (flag) {
-                flag = false;
-                System.out.println("Consumer use product: " + product);
-                notify();
-                wait();
-            }
-        } catch (InterruptedException exception) {
-            System.err.println(exception.toString());
-        }
+    public synchronized int get() {
+        return product;
     }
 
     public synchronized void put(int product) {
-        try {
-            if (!flag) {
-                this.product = product;
-                System.out.println("Producer put product: " + product);
-                flag = true;
-                notify();
-                wait();
-            }
-
-        } catch (InterruptedException exception) {
-            System.err.println(exception.getMessage());
-        }
+        this.product = product;
     }
 }
